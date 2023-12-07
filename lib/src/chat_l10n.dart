@@ -72,8 +72,8 @@ class ChatL10nEn extends ChatL10n {
   /// override only a couple of properties, otherwise create a new class
   /// which extends [ChatL10n].
   const ChatL10nEn({
-    super.attachmentButtonAccessibilityLabel = 'Send media',
-    super.emptyChatPlaceholder = 'No messages here yet',
+    super.attachmentButtonAccessibilityLabel = 'Add Screenshot',
+    super.emptyChatPlaceholder = 'Message D8bot',
     super.fileButtonAccessibilityLabel = 'File',
     super.inputPlaceholder = 'Message',
     super.sendButtonAccessibilityLabel = 'Send',

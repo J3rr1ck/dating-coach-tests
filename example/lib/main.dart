@@ -242,16 +242,15 @@ String _stripHtmlTags(String htmlString) {
     _addMessage(textMessage);
   }
 
-  void _loadMessages() async {
-    final response = await rootBundle.loadString('assets/messages.json');
-    final messages = (jsonDecode(response) as List)
-        .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
-        .toList();
+void _loadMessages() async {
+  // Skip loading messages from messages.json
+  // _messages = (jsonDecode(await rootBundle.loadString('assets/messages.json')) as List)
+  //     .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
+  //     .toList();
 
-    setState(() {
-      _messages = messages;
-    });
-  }
+  // Set the initial message list to empty
+  _messages = [];
+}
 
   @override
   Widget build(BuildContext context) => Scaffold(
