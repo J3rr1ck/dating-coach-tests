@@ -57,7 +57,7 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       builder: (BuildContext context) => SafeArea(
         child: SizedBox(
-          height: 144,
+          height: 75,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -67,24 +67,14 @@ class _ChatPageState extends State<ChatPage> {
                   _handleImageSelection();
                 },
                 child: const Align(
-                  alignment: AlignmentDirectional.centerStart,
+                  alignment: AlignmentDirectional.center,
                   child: Text('Photo'),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _handleFileSelection();
-                },
-                child: const Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text('File'),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Align(
-                  alignment: AlignmentDirectional.centerStart,
+                  alignment: AlignmentDirectional.center,
                   child: Text('Cancel'),
                 ),
               ),

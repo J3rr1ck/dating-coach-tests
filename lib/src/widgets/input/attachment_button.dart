@@ -3,20 +3,20 @@ import 'package:flutter/material.dart';
 import '../state/inherited_chat_theme.dart';
 import '../state/inherited_l10n.dart';
 
-/// A class that represents attachment button widget.
+/// A class that represents an attachment button widget.
 class AttachmentButton extends StatelessWidget {
   /// Creates attachment button widget.
   const AttachmentButton({
-    super.key,
+    Key? key,
     this.isLoading = false,
     this.onPressed,
     this.padding = EdgeInsets.zero,
-  });
+  }) : super(key: key);
 
   /// Show a loading indicator instead of the button.
   final bool isLoading;
 
-  /// Callback for attachment button tap event.
+  /// Callback for the attachment button tap event.
   final VoidCallback? onPressed;
 
   /// Padding around the button.
@@ -48,12 +48,10 @@ class AttachmentButton extends StatelessWidget {
                     ),
                   ),
                 )
-              : InheritedChatTheme.of(context).theme.attachmentButtonIcon ??
-                  Image.asset(
-                    'assets/icon-attachment.png',
-                    color: InheritedChatTheme.of(context).theme.inputTextColor,
-                    package: 'flutter_chat_ui',
-                  ),
+              : Icon(
+                  Icons.add_photo_alternate,
+                  color: InheritedChatTheme.of(context).theme.inputTextColor,
+                ),
           onPressed: isLoading ? null : onPressed,
           padding: padding,
           splashRadius: 24,
