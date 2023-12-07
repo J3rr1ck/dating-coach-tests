@@ -13,6 +13,11 @@ import 'package:mime/mime.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+
 
 void main() {
   initializeDateFormatting().then((_) => runApp(const MyApp()));
@@ -105,31 +110,51 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _handleImageSelection() async {
-    final result = await ImagePicker().pickImage(
-      imageQuality: 70,
-      maxWidth: 1440,
-      source: ImageSource.gallery,
-    );
+void _handleImageSelection() async {
+  final result = await ImagePicker().pickImage(
+    imageQuality: 70,
+    maxWidth: 1440,
+    source: ImageSource.gallery,
+  );
 
-    if (result != null) {
-      final bytes = await result.readAsBytes();
-      final image = await decodeImageFromList(bytes);
+  if (result != null) {
+    try {
+      final file = File(result.path!);
+      final mimeType = lookupMimeType(file.path);
 
-      final message = types.ImageMessage(
-        author: _user,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        height: image.height.toDouble(),
-        id: const Uuid().v4(),
-        name: result.name,
-        size: bytes.length,
-        uri: result.path,
-        width: image.width.toDouble(),
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://54.68.100.78:3000/upload'),
       );
 
-      _addMessage(message);
+      // Add image file to the request
+      request.files.add(http.MultipartFile(
+        'sampleFile',
+        file.readAsBytes().asStream(),
+        file.lengthSync(),
+        filename: result.name,
+        contentType: MediaType.parse(mimeType ?? 'application/octet-stream'),
+      ));
+
+      // Send the request
+      final response = await http.Response.fromStream(await request.send());
+
+      if (response.statusCode == 200) {
+        // Successfully uploaded
+        final jsonResponse = jsonDecode(response.body);
+        // Handle the response as needed
+        print('Image uploaded successfully: $jsonResponse');
+      } else {
+        // Handle the error
+        print('Failed to upload image. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle any exceptions
+      print('Error uploading image: $e');
     }
   }
+}
+
 
   void _handleMessageTap(BuildContext _, types.Message message) async {
     if (message is types.FileMessage) {
