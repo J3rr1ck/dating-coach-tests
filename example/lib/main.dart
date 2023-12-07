@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:flutter_html/flutter_html.dart'; 
 
 
 void main() {
@@ -141,9 +142,19 @@ void _handleImageSelection() async {
 
       if (response.statusCode == 200) {
         // Successfully uploaded
-        final jsonResponse = jsonDecode(response.body);
-        // Handle the response as needed
-        print('Image uploaded successfully: $jsonResponse');
+        final responseText = response.body;
+
+        // Create a simple TextMessage with the server response
+        final message = types.TextMessage(
+          author: _user,
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+          text: responseText,
+        );
+
+        _addMessage(message);
+
+        print('Image uploaded successfully: $responseText');
       } else {
         // Handle the error
         print('Failed to upload image. Status code: ${response.statusCode}');
@@ -153,6 +164,11 @@ void _handleImageSelection() async {
       print('Error uploading image: $e');
     }
   }
+}
+
+String _stripHtmlTags(String htmlString) {
+  // Use Flutter's Html widget to decode HTML entities and strip tags
+  return Html(data: htmlString).toString();
 }
 
 

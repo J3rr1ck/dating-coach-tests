@@ -44,6 +44,7 @@ dependencies:
   open_filex: ^4.3.2
   path_provider: ^2.0.15
   uuid: ^3.0.7
+  flutter_html: '>=2.2.1'
 
 dev_dependencies:
   dart_code_metrics: ^5.7.5
