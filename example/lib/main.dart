@@ -111,6 +111,35 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+final endpoint = 'https://bard-proxy-virid.vercel.app/v1beta2/models/chat-bison-001:generateMessage?key=AIzaSyASkuYqpJRIvx1rzQ2c6tKDS9l63LUNuQE';
+
+Future<String?> generateMessage(String ocr) async {
+  final response = await http.post(
+    Uri.parse(endpoint),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'prompt': {
+        'context': 'you are helping me think of an good answer to continue this tinder conversation.',
+        'messages': [{'author':"0", 'content': ocr}],
+      },
+      'temperature': 0.9,
+      'top_k': 40,
+      'top_p': 0.95,
+      'candidate_count': 1,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    print(data);
+    return data['candidates'][0]["content"] as String;
+  }
+
+  return null;
+}
+
 void _handleImageSelection() async {
   final result = await ImagePicker().pickImage(
     imageQuality: 70,
@@ -143,18 +172,19 @@ void _handleImageSelection() async {
       if (response.statusCode == 200) {
         // Successfully uploaded
         final responseText = response.body;
+        print('Image uploaded successfully: $responseText');
+        var aiResponse = await generateMessage(responseText);
 
         // Create a simple TextMessage with the server response
         final message = types.TextMessage(
           author: _user,
           createdAt: DateTime.now().millisecondsSinceEpoch,
           id: const Uuid().v4(),
-          text: responseText,
+          text: aiResponse!,
         );
 
         _addMessage(message);
 
-        print('Image uploaded successfully: $responseText');
       } else {
         // Handle the error
         print('Failed to upload image. Status code: ${response.statusCode}');
