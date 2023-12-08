@@ -134,7 +134,7 @@ Future<String?> generateMessage(String ocr) async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     print(data);
-    return data['candidates'][0]["content"] as String;
+    return data['candidates'][0]['content'] as String;
   }
 
   return null;
@@ -157,6 +157,18 @@ void _handleImageSelection() async {
         Uri.parse('http://54.68.100.78:3000/upload'),
       );
 
+      final message = types.FileMessage(
+        author: _user,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        mimeType: lookupMimeType(result.files.single.path!),
+        name: result.files.single.name,
+        size: result.files.single.size,
+        uri: result.files.single.path!,
+      );
+
+      _addMessage(message);
+
       // Add image file to the request
       request.files.add(http.MultipartFile(
         'sampleFile',
@@ -177,7 +189,7 @@ void _handleImageSelection() async {
 
         // Create a simple TextMessage with the server response
         final message = types.TextMessage(
-          author: _user,
+          author: "d8bot",
           createdAt: DateTime.now().millisecondsSinceEpoch,
           id: const Uuid().v4(),
           text: aiResponse!,
@@ -280,6 +292,15 @@ void _loadMessages() async {
 
   // Set the initial message list to empty
   _messages = [];
+  // Create a simple TextMessage with the server response
+        final message = types.TextMessage(
+          author: "d8bot",
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+          text:"Welcome, select a screenshot and I'll tell you what I think",
+        );
+
+        _addMessage(message);
 }
 
   @override
