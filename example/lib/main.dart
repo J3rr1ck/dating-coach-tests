@@ -45,6 +45,9 @@ class _ChatPageState extends State<ChatPage> {
   final _user = const types.User(
     id: '82091008-a484-4a89-ae75-a22bf8d6f3ac',
   );
+  final _bot = const types.User(
+    id: '90909090-9090-9090-9090-909090909090',
+  );
 
   @override
   void initState() {
@@ -140,6 +143,33 @@ Future<String?> generateMessage(String ocr) async {
   return null;
 }
 
+Future<String?> askBard(String ocr) async {
+  final response = await http.post(
+    Uri.parse(endpoint),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'prompt': {
+        'context': 'you are helping me with general life advice.',
+        'messages': [{'author':"0", 'content': ocr}],
+      },
+      'temperature': 0.9,
+      'top_k': 40,
+      'top_p': 0.95,
+      'candidate_count': 1,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    print(data);
+    return data['candidates'][0]['content'] as String;
+  }
+
+  return null;
+}
+
 void _handleImageSelection() async {
   final result = await ImagePicker().pickImage(
     imageQuality: 70,
@@ -150,21 +180,25 @@ void _handleImageSelection() async {
   if (result != null) {
     try {
       final file = File(result.path!);
-      final mimeType = lookupMimeType(file.path);
+      final mimeType = lookupMimeType(file.path);      
+      final bytes = await result.readAsBytes();
+      final image = await decodeImageFromList(bytes);
+
 
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('http://54.68.100.78:3000/upload'),
       );
 
-      final message = types.FileMessage(
+      final message = types.ImageMessage(
         author: _user,
         createdAt: DateTime.now().millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        mimeType: lookupMimeType(result.files.single.path!),
-        name: result.files.single.name,
-        size: result.files.single.size,
-        uri: result.files.single.path!,
+        id: const Uuid().v4(),        
+        name: result.name,
+        size: bytes.length,
+        uri: result.path,
+        width: image.width.toDouble(),
+
       );
 
       _addMessage(message);
@@ -182,6 +216,15 @@ void _handleImageSelection() async {
       final response = await http.Response.fromStream(await request.send());
 
       if (response.statusCode == 200) {
+        final loadingMessage = types.TextMessage(
+          author: _bot,
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+          text: "alright let me think...",
+        );
+
+        _addMessage(loadingMessage);
+
         // Successfully uploaded
         final responseText = response.body;
         print('Image uploaded successfully: $responseText');
@@ -189,7 +232,7 @@ void _handleImageSelection() async {
 
         // Create a simple TextMessage with the server response
         final message = types.TextMessage(
-          author: "d8bot",
+          author: _bot,
           createdAt: DateTime.now().millisecondsSinceEpoch,
           id: const Uuid().v4(),
           text: aiResponse!,
@@ -273,7 +316,7 @@ String _stripHtmlTags(String htmlString) {
     });
   }
 
-  void _handleSendPressed(types.PartialText message) {
+  void _handleSendPressed(types.PartialText message) async {
     final textMessage = types.TextMessage(
       author: _user,
       createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -282,6 +325,18 @@ String _stripHtmlTags(String htmlString) {
     );
 
     _addMessage(textMessage);
+    var aiResponse = await askBard(message.text);
+
+    // Create a simple TextMessage with the server response
+    final response = types.TextMessage(
+      author: _bot,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: const Uuid().v4(),
+      text: aiResponse!,
+    );
+
+    _addMessage(response);
+
   }
 
 void _loadMessages() async {
@@ -293,14 +348,14 @@ void _loadMessages() async {
   // Set the initial message list to empty
   _messages = [];
   // Create a simple TextMessage with the server response
-        final message = types.TextMessage(
-          author: "d8bot",
-          createdAt: DateTime.now().millisecondsSinceEpoch,
-          id: const Uuid().v4(),
-          text:"Welcome, select a screenshot and I'll tell you what I think",
-        );
+  final message = types.TextMessage(
+    author: _bot,
+    createdAt: DateTime.now().millisecondsSinceEpoch,
+    id: const Uuid().v4(),
+    text:"Welcome to d8bot - a dating coach, select a screenshot and I'll tell you what I think",
+  );
 
-        _addMessage(message);
+  _addMessage(message);
 }
 
   @override
